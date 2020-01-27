@@ -1,19 +1,23 @@
 import warnings
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")  # "ignore" or "error"
 
 # model settings
 model = dict(
     type='MaskRCNN',
     #pretrained='torchvision://resnet50',
     backbone=dict(
-        type='ResNet',
-        depth=18,
-        num_stages=1,
-        out_indices=[0],
-        strides=[2],
-        dilations=[1],
-        frozen_stages=1,
-        style='pytorch'),
+        type='ConvNet',
+        in_channels=1,
+        hidden_channels=8,
+        out_channels=8),
+    #backbone=dict(
+    #    type='ResNet',
+    #    in_channels=1,
+    #    depth=18,
+    #    num_stages=4,
+    #    out_indices=(0, 1, 2, 3),
+    #    frozen_stages=1,
+    #    style='pytorch'),
     #neck=dict(
     #    type='FPN',
     #    in_channels=[256, 512, 1024, 2048],
@@ -21,13 +25,13 @@ model = dict(
     #    num_outs=5),
     rpn_head=dict(
         type='RPNHead',
-        in_channels=64,
-        feat_channels=32,
+        in_channels=8,
+        feat_channels=8,
         anchor_scales=[3],
         anchor_ratios=[0.5, 1.0, 2.0],
         anchor_strides=[4],
-        target_means=[.0, .0, .0, .0],
-        target_stds=[1.0, 1.0, 1.0, 1.0],
+        #target_means=[.0, .0, .0, .0],
+        #target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0)),
@@ -36,30 +40,31 @@ model = dict(
         roi_layer=dict(type='RoIAlign', out_size=7, sample_num=2),
         out_channels=32,
         featmap_strides=[2]),
-    bbox_head=dict(
-        type='BBoxHead',
-        #num_fcs=1,
-        in_channels=64,
-        #fc_out_channels=256,
-        roi_feat_size=7,
-        num_classes=11, # +1 for background
-        #target_means=[0., 0., 0., 0.],
-        #target_stds=[0.1, 0.1, 0.2, 0.2],
-        reg_class_agnostic=False,
-        loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
+    bbox_head=None,
+    # bbox_head=dict(
+    #     type='BBoxHead',
+    #     #num_fcs=1,
+    #     in_channels=64,
+    #     #fc_out_channels=256,
+    #     roi_feat_size=7,
+    #     num_classes=11, # +1 for background
+    #     #target_means=[0., 0., 0., 0.],
+    #     #target_stds=[0.1, 0.1, 0.2, 0.2],
+    #     reg_class_agnostic=False,
+    #     loss_cls=dict(
+    #         type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+    #     loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
     mask_roi_extractor=dict(
         type='SingleRoIExtractor',
         roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
-        out_channels=32,
+        out_channels=8,
         featmap_strides=[4, 8, 16, 32]),
     mask_head=dict(
         type='FCNMaskHead',
         num_convs=2,
-        in_channels=64,
-        conv_out_channels=32,
-        num_classes=11,
+        in_channels=8,
+        conv_out_channels=8,
+        num_classes=11,     # 10 digits + 1 for background
         loss_mask=dict(
             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)))
 # model training and testing settings
@@ -123,14 +128,15 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 
 train_pipeline = [
-    dict(type='LoadImageFromFile'),
+    dict(type='LoadImageFromFile', to_float32=True, color_type='grayscale'),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(type='Resize', img_scale=(60, 50), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
-    dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=32),
+    #dict(type='Normalize', **img_norm_cfg),
+    dict(type='Pad', size=(50, 60)),    # height, width
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),#, meta_keys=['filename', 'ori_shape', 'img_shape']),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']), 
+                         #meta_keys=['filename', 'ori_shape', 'img_shape']),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),

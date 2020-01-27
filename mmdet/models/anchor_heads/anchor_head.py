@@ -111,6 +111,12 @@ class AnchorHead(nn.Module):
         num_imgs = len(img_metas)
         num_levels = len(featmap_sizes)
 
+        # pad_shape is optional
+        for i, _ in enumerate(img_metas):
+            if 'pad_shape' not in img_metas[i]:
+                img_metas[i]['pad_shape'] = img_metas[i]['img_shape']
+            
+
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
         multi_level_anchors = []
@@ -253,6 +259,10 @@ class AnchorHead(nn.Module):
         """
         assert len(cls_scores) == len(bbox_preds)
         num_levels = len(cls_scores)
+
+        for img_meta in img_metas:
+            if 'scale_factor' not in img_meta.keys():
+                img_meta['scale_factor'] = None
 
         device = cls_scores[0].device
         mlvl_anchors = [

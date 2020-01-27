@@ -27,6 +27,8 @@ class LoadImageFromFile(object):
         results['img'] = img
         results['img_shape'] = img.shape
         results['ori_shape'] = img.shape
+        results['scale_factor'] = None      # Otherwise not set if Rezise is left out of the pipeline
+        results['pad_shape'] = img.shape    # Same here for padding
         return results
 
     def __repr__(self):

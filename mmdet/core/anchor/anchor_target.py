@@ -109,7 +109,7 @@ def anchor_target_single(flat_anchors,
     if not inside_flags.any():
         return (None, ) * 6
     # assign gt and sample anchors
-    anchors = flat_anchors[inside_flags, :]
+    anchors = flat_anchors[inside_flags.type(torch.bool), :]
 
     if sampling:
         assign_result, sampling_result = assign_and_sample(

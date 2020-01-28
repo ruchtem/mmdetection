@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("error")  # "ignore" or "error"
+
 # model settings
 model = dict(
     type='MaskRCNN',
@@ -112,19 +115,20 @@ test_cfg = dict(
         max_per_img=100,
         mask_thr_binary=0.5))
 # dataset settings
-dataset_type = 'CocoDataset'
+dataset_type = 'MovingMnistDataset' # 'CocoDataset'
 data_root = 'data/coco/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
-    dict(type='LoadImageFromFile'),
+    dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
-    dict(type='RandomFlip', flip_ratio=0.5),
-    dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=32),
+    #dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+    #dict(type='RandomFlip', flip_ratio=0.5),
+    #dict(type='Normalize', **img_norm_cfg),
+    dict(type='Pad', size_divisor=32),  # Necessary to have correct output shape for fpn and stacking masks
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),
+
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'], meta_keys=('filename', 'ori_shape', 'img_shape')),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -142,7 +146,7 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=2,
+    imgs_per_gpu=1,
     workers_per_gpu=0,
     train=dict(
         type=dataset_type,

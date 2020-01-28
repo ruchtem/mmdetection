@@ -55,9 +55,9 @@ class ConvNet(nn.Module):
     def forward(self, x):
         
         # Debug
-        plt.imshow(x.clone().cpu().numpy()[0, 0], cmap='hot')
-        plt.savefig("%i.png" % self.i)
-        self.i += 1
+        #plt.imshow(x.clone().cpu().numpy()[0, 0], cmap='hot')
+        #plt.savefig("%i.png" % self.i)
+        #self.i += 1
         
         # Max pooling over a (2, 2) window
         x = F.relu(self.conv_in(x))

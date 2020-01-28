@@ -24,20 +24,15 @@ model = dict(
         roi_layer=dict(type='RoIAlign', out_size=7, sample_num=2),
         out_channels=32,
         featmap_strides=[2]),
-    bbox_head=None,
-    # bbox_head=dict(
-    #     type='SharedFCBBoxHead',
-    #     num_fcs=1,
-    #     in_channels=8,
-    #     fc_out_channels=8,
-    #     roi_feat_size=7,
-    #     num_classes=11, # +1 for background
-    #     target_means=[0., 0., 0., 0.],
-    #     target_stds=[0.1, 0.1, 0.2, 0.2],
-    #     reg_class_agnostic=False,
-    #     loss_cls=dict(
-    #         type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-    #     loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
+    bbox_head=dict(
+        type='BBoxHead',
+        in_channels=8,
+        roi_feat_size=7,
+        num_classes=11,     # 10 digits + 1 for background
+        reg_class_agnostic=False,
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
     mask_roi_extractor=dict(
         type='SingleRoIExtractor',
         roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
@@ -108,7 +103,6 @@ test_cfg = dict(
 # dataset settings
 dataset_type = 'MovingMnistDataset'
 data_root = 'data/moving-mnist/'
-#data_root = 'data/coco/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -134,7 +128,7 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
+    imgs_per_gpu=300,    # batch size
     workers_per_gpu=0,
     train=dict(
         type=dataset_type,
@@ -165,7 +159,7 @@ lr_config = dict(
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
-    interval=50,
+    interval=1,
     hooks=[
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook')
@@ -173,7 +167,7 @@ log_config = dict(
 # yapf:enable
 evaluation = dict(interval=1)
 # runtime settings
-total_epochs = 12
+total_epochs = 500
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/mask_rcnn_r50_fpn_1x'

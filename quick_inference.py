@@ -14,6 +14,6 @@ model = init_detector(config_file, checkpoint_file)
 for img in Path("data/moving-mnist/val/").iterdir():
 
     #img = 'test.jpg'  # or img = mmcv.imread(img), which will only load it once
-    result = inference_detector(model, str(img),color_type='grayscale')
+    result = inference_detector(model, str(img))
     # or save the visualization results to image files
-    show_result(str(img), result, model.CLASSES, show=False, out_file=str(img.name))
+    show_result(str(img), result, model.CLASSES, show=False, out_file="work_dirs/img/%s" % img.name)

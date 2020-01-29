@@ -116,6 +116,8 @@ data
 *.log.json
 work_dirs/
 *.png
+*.jpg
+*.json
 
 # Pytorch
 *.pth

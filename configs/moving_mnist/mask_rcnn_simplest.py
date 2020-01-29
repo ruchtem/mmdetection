@@ -114,27 +114,10 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True, color_type='grayscale'),
-    #dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(type='Pad', size=(50, 60)),    # height, width, necessary for mask stacking see https://github.com/open-mmlab/mmdetection/issues/2026
-    #dict(type='DefaultFormatBundle'),
     dict(type='ImageToTensor', keys=['img']),
     dict(type='Collect', keys=['img'], meta_keys=('filename', 'ori_shape', 'img_shape')),
-    #dict(type='LoadImageFromFile', color_type='grayscale'),
-    #dict(type='Pad', size=(50, 60)),    # height, width, necessary for mask stacking see https://github.com/open-mmlab/mmdetection/issues/2026
-    #dict(type='ImageToTensor', keys=['img']),
-    #dict(type='Collect', keys=['img'], meta_keys=('filename', 'ori_shape')),
-    # dict(
-    #     type='MultiScaleFlipAug',
-    #     img_scale=(1333, 800),
-    #     flip=False,
-    #     transforms=[
-    #         dict(type='Resize', keep_ratio=True),
-    #         dict(type='RandomFlip'),
-    #         dict(type='Normalize', **img_norm_cfg),
-    #         dict(type='Pad', size_divisor=32),
-    #         dict(type='ImageToTensor', keys=['img']),
-    #         dict(type='Collect', keys=['img']),
-    #     ])
+
 ]
 data = dict(
     imgs_per_gpu=300,    # batch size
@@ -171,6 +154,7 @@ log_config = dict(
     interval=1,
     hooks=[
         dict(type='TextLoggerHook'),
+        #dict(type='DistEvalmAPHook')   use --validate in tools/train.py
         # dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable

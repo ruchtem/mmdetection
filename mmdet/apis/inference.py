@@ -48,12 +48,13 @@ def init_detector(config, checkpoint=None, device='cuda:0'):
 
 class LoadImage(object):
 
-    def __call__(self, results):
+    def __call__(self, results, color_type="grayscale"):
         if isinstance(results['img'], str):
             results['filename'] = results['img']
         else:
             results['filename'] = None
-        img = mmcv.imread(results['img'])
+        img = mmcv.imread(results['img'], color_type)
+        img = img.astype(np.float32)
         results['img'] = img
         results['img_shape'] = img.shape
         results['ori_shape'] = img.shape

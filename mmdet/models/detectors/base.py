@@ -105,6 +105,11 @@ class BaseDetector(nn.Module, metaclass=ABCMeta):
                 augs (multiscale, flip, etc.) and the inner list indicates
                 images in a batch
         """
+
+        # Quick fix in case no augmentations are done
+        if not isinstance(imgs, list):
+            imgs = [imgs]
+
         for var, name in [(imgs, 'imgs'), (img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError('{} must be a list, but got {}'.format(
@@ -120,7 +125,7 @@ class BaseDetector(nn.Module, metaclass=ABCMeta):
         assert imgs_per_gpu == 1
 
         if num_augs == 1:
-            return self.simple_test(imgs[0], img_metas[0], **kwargs)
+            return self.simple_test(imgs[0], [img_metas[0]], **kwargs)
         else:
             return self.aug_test(imgs, img_metas, **kwargs)
 

@@ -262,7 +262,8 @@ class AnchorHead(nn.Module):
 
         for img_meta in img_metas:
             if 'scale_factor' not in img_meta.keys():
-                img_meta['scale_factor'] = None
+                #img_meta['scale_factor'] = None    # Not sure how to deal with that one
+                img_meta['scale_factor'] = 1.
 
         device = cls_scores[0].device
         mlvl_anchors = [

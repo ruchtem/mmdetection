@@ -155,8 +155,8 @@ def show_result(img,
     ]
     labels = np.concatenate(labels)
     # draw segmentation masks
-    if segm_result is not None:
-        segms = mmcv.concat_list(segm_result)
+    if labels.size > 0 and segm_result is not None:
+        segms = mmcv.concat_list(segm_result)      # What the heck?
         inds = np.where(bboxes[:, -1] > score_thr)[0]
         np.random.seed(42)
         color_masks = [

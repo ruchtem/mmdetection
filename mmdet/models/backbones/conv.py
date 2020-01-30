@@ -22,12 +22,12 @@ class ConvNet(nn.Module):
         self.conv_in = nn.Conv2d(
             in_channels,
             hidden_channels,
-            kernel_size=3)
+            kernel_size=5)
         
         self.conv_hidden = nn.Conv2d(
             hidden_channels,
             hidden_channels,
-            kernel_size=3)
+            kernel_size=5)
         
         self.conv_out = nn.Conv2d(
             hidden_channels,
@@ -61,8 +61,12 @@ class ConvNet(nn.Module):
         
         # Max pooling over a (2, 2) window
         x = F.relu(self.conv_in(x))
-        x = F.max_pool2d(F.relu(self.conv_hidden(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv_out(x)), (2, 2))
+        #x = F.max_pool2d(F.relu(self.conv_hidden(x)), (2, 2))
+        x = F.relu(self.conv_hidden(x))
+        x = F.relu(self.conv_hidden(x))
+        x = F.relu(self.conv_hidden(x))
+        x = F.relu(self.conv_out(x))
+
         
         # The framework assumes tuple output because usually several last layers are out putted.
         # This way dimensions match again

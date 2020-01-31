@@ -1,8 +1,9 @@
 import warnings
 warnings.filterwarnings("ignore")  # "ignore" or "error"
 
-backbone_out = 32
-img_size = (200, 200)   # w, h
+backbone_out = 128
+num_classes = 11        # 10 digits + 1 for background
+img_size = (50, 60)   # h, w
 
 # model settings
 model = dict(
@@ -10,15 +11,16 @@ model = dict(
     backbone=dict(
         type='ConvNet',
         in_channels=1,
-        hidden_channels=64,
+        hidden_channels=32,
         out_channels=backbone_out),
     rpn_head=dict(
         type='RPNHead',
         in_channels=backbone_out,
-        feat_channels=64,
-        anchor_scales=[1],
-        anchor_ratios=[0.5, 1.0, 2.0],
-        anchor_strides=[50],     # One for each stage outputted by the backbone, this is the w and h of the anchor. This is dependent on the size of the feature output
+        feat_channels=128,
+        anchor_scales=[1.],      # Scales for each base anchor. list. 1 = same scale as defined in anchor_base_sizes
+        anchor_ratios=[1.],     # the ratios of with to height, list, e.g. [.5, 1., 2.]
+        anchor_strides=[5],     # One for each stage outputted by the backbone, this is the w and h of the anchor. This is dependent on the size of the feature output
+        anchor_base_sizes=[15],  # the width and height of the anchor when scale=1
         #anchor_scales=[3],
         #anchor_ratios=[0.5, 1.0, 2.0],
         loss_cls=dict(
@@ -30,15 +32,28 @@ model = dict(
         out_channels=backbone_out,
         featmap_strides=[4]),
     bbox_head=dict(
-        type='BBoxHead',
-        with_reg=False,
+        type='SharedFCBBoxHead',
+        num_fcs=2,
         in_channels=backbone_out,
+        fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=11,     # 10 digits + 1 for background
+        num_classes=num_classes,
+        target_means=[0., 0., 0., 0.],
+        target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
+    # bbox_head=dict(
+    #     type='BBoxHead',
+    #     with_reg=True,
+    #     in_channels=backbone_out,
+    #     roi_feat_size=7,
+    #     num_classes=num_classes,     
+    #     reg_class_agnostic=False,
+    #     loss_cls=dict(
+    #         type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+    #     loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
     mask_roi_extractor=dict(
         type='SingleRoIExtractor',
         roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
@@ -49,8 +64,8 @@ model = dict(
         num_convs=2,
         in_channels=backbone_out,
         conv_out_channels=64,
-        num_classes=11,     # 10 digits + 1 for background
-        class_agnostic=True,
+        num_classes=num_classes,     # 10 digits + 1 for background
+        class_agnostic=False,
         loss_mask=dict(
             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)))
 # model training and testing settings
@@ -64,7 +79,7 @@ train_cfg = dict(
             ignore_iof_thr=-1),
         sampler=dict(
             type='RandomSampler',
-            num=256,
+            num=8,
             pos_fraction=0.5,
             neg_pos_ub=-1,
             add_gt_as_proposals=False),
@@ -104,7 +119,7 @@ test_cfg = dict(
         min_bbox_size=0),
     rcnn=dict(
         score_thr=0.05,
-        nms=dict(type='nms', iou_thr=0.5),
+        nms=dict(type='nms', iou_thr=0.9),
         max_per_img=100,
         mask_thr_binary=0.5))
 # dataset settings
@@ -146,7 +161,7 @@ data = dict(
         pipeline=test_pipeline)
     )
 # optimizer
-optimizer = dict(type="Adam", lr=0.00001)
+optimizer = dict(type="Adam", lr=0.000001)
 optimizer_config = None
 
 # Learning rate update policy for training. Parameters:
@@ -201,7 +216,7 @@ evaluation = dict(interval=1)
 ######################
 
 # Number of epochs to ran the total model.
-total_epochs = 5000
+total_epochs = 10000
 
 # Unclear
 dist_params = dict(backend='nccl')
